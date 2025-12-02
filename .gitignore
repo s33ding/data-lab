@@ -7,5 +7,18 @@
 
 # PEM key files
 *.pem
+
+# Local development files with sensitive data
 local/postgres-connector.json
 local/kafka-startup.log
+local/configure-debezium.sh
+
+# Generated connector configs (may contain credentials)
+postgres-connector.json
+
+# Log files
+*.log
+
+# Pytest cache
+.pytest_cache/
+__pycache__/
