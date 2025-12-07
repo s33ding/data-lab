@@ -104,9 +104,9 @@ resource "aws_iam_role" "kafka_ec2_role" {
   }
 }
 
-# Policy for Secrets Manager access
-resource "aws_iam_role_policy" "kafka_secrets_policy" {
-  name = "kafka-secrets-policy"
+# Policy for Secrets Manager and S3 access
+resource "aws_iam_role_policy" "kafka_secrets_s3_policy" {
+  name = "kafka-secrets-s3-policy"
   role = aws_iam_role.kafka_ec2_role.id
 
   policy = jsonencode({
@@ -125,6 +125,23 @@ resource "aws_iam_role_policy" "kafka_secrets_policy" {
           "secretsmanager:ListSecrets"
         ]
         Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListAllMyBuckets"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:*"
+        ]
+        Resource = [
+          "arn:aws:s3:::s33ding-kafka-output",
+          "arn:aws:s3:::s33ding-kafka-output/*"
+        ]
       }
     ]
   })
@@ -134,6 +151,17 @@ resource "aws_iam_role_policy" "kafka_secrets_policy" {
 resource "aws_iam_role_policy_attachment" "kafka_ssm_policy" {
   role       = aws_iam_role.kafka_ec2_role.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+# S3 bucket for Kafka output
+resource "aws_s3_bucket" "kafka_output" {
+  bucket = "s33ding-kafka-output"
+
+  tags = {
+    Name = "kafka-output-bucket"
+    Environment = "development"
+    Purpose = "kafka-data-output"
+  }
 }
 
 # Instance profile

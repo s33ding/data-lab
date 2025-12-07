@@ -32,3 +32,13 @@ output "ssm_connect_command" {
   description = "AWS SSM command to connect to Kafka instance"
   value       = "aws ssm start-session --target ${aws_instance.kafka_instance.id} --region ${var.aws_region}"
 }
+
+output "s3_bucket_name" {
+  description = "Name of the S3 bucket for Kafka output"
+  value       = aws_s3_bucket.kafka_output.bucket
+}
+
+output "s3_bucket_arn" {
+  description = "ARN of the S3 bucket for Kafka output"
+  value       = aws_s3_bucket.kafka_output.arn
+}
