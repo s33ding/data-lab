@@ -204,6 +204,7 @@ resource "aws_instance" "kafka_instance" {
     rds_secret_name = var.rds_secret_name
     aws_region      = var.aws_region
     kafka_device    = "/dev/xvdf"
+    s3_bucket       = aws_s3_bucket.kafka_output.bucket
   })
 
   tags = {

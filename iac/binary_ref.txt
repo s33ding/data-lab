@@ -1,0 +1,13 @@
+sudo su cd
+
+https://archive.apache.org/dist/kafka/3.0.0/kafka_2.13-3.0.0.tgz
+
+sudo yum install java-1.8.0-amazon-corretto -y
+
+cd kafka_2.13-3.0.0/
+
+bin/kafka-storage.sh random-uuid
+
+bin/kafka-storage.sh random-uuid | aws ssm put-parameter --name "/kafka/cluster-id" --value "$(cat)" --type "String"
+
+[root@ip-10-0-40-70 kafka_2.13-3.0.0]# bin/kafka-storage.sh  format -t i-mZto_oQPyDwa2B4dnS3Q -c ~/kafka_2.13-3.0.0/config/kraft/server.properties

@@ -1,0 +1,134 @@
+# Kafka with S3 Sink Connector Deployment Steps
+
+## Key File Paths
+- `config/kraft/server.properties` - Kafka server configuration
+- `config/connect-standalone.properties` - Kafka Connect configuration  
+- `config/s3-sink-connector.properties` - S3 sink connector configuration
+- `bin/kafka-storage.sh` - Storage management script
+- `bin/kafka-server-start.sh` - Server startup script
+- `bin/connect-standalone.sh` - Connect startup script
+
+## Prerequisites
+- EC2 instance with Amazon Linux 2
+- Java 11+ installed
+- S3 bucket created
+- Security group allowing ports 9092, 8083
+
+## Step 1: Install Java
+```bash
+sudo yum update -y
+sudo yum install -y java-11-amazon-corretto
+```
+
+## Step 2: Download and Setup Kafka
+```bash
+# Download Kafka
+wget https://downloads.apache.org/kafka/2.13-3.6.0/kafka_2.13-3.6.0.tgz
+tar -xzf kafka_2.13-3.6.0.tgz
+cd kafka_2.13-3.6.0
+```
+
+## Step 3: Configure Kafka Storage
+```bash
+# Generate cluster UUID
+bin/kafka-storage.sh random-uuid
+
+# Format storage (replace <uuid> with generated UUID)
+bin/kafka-storage.sh format -t <uuid> -c config/kraft/server.properties
+```
+
+## Step 4: Configure Kafka Server
+Edit `config/kraft/server.properties`:
+```bash
+vim config/kraft/server.properties
+```
+
+Update these settings:
+```properties
+# Replace with your EC2 public IP
+listeners=PLAINTEXT://0.0.0.0:9092
+advertised.listeners=PLAINTEXT://<EC2_PUBLIC_IP>:9092
+```
+
+## Step 5: Start Kafka Server
+```bash
+bin/kafka-server-start.sh config/kraft/server.properties
+```
+
+## Step 6: Download S3 Sink Connector
+```bash
+# Download from Confluent Hub
+wget https://d1i4a15mxbxib1.cloudfront.net/api/plugins/confluentinc/kafka-connect-s3/versions/10.5.0/confluentinc-kafka-connect-s3-10.5.0.zip
+unzip confluentinc-kafka-connect-s3-10.5.0.zip
+```
+
+## Step 7: Configure Kafka Connect
+Edit `config/connect-standalone.properties`:
+```bash
+vim config/connect-standalone.properties
+```
+
+Update:
+```properties
+bootstrap.servers=<EC2_PUBLIC_IP>:9092
+plugin.path=/home/ec2-user/kafka_2.13-3.6.0/confluentinc-kafka-connect-s3-10.5.0/lib
+```
+
+## Step 8: Create S3 Sink Connector Configuration
+Create `config/s3-sink-connector.properties`:
+```bash
+vim config/s3-sink-connector.properties
+```
+
+Add configuration:
+```properties
+name=s3-sink-connector
+connector.class=io.confluent.connect.s3.S3SinkConnector
+tasks.max=1
+topics=cartevent
+
+# S3 Configuration
+s3.bucket.name=<YOUR_BUCKET_NAME>
+s3.region=us-east-1
+flush.size=5
+rotate.schedule.interval.ms=60000
+
+# Storage and Format
+storage.class=io.confluent.connect.s3.storage.S3Storage
+format.class=io.confluent.connect.s3.format.json.JsonFormat
+partitioner.class=io.confluent.connect.storage.partitioner.DefaultPartitioner
+timezone=UTC
+
+# Converter Settings
+key.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=false
+value.converter.schemas.enable=false
+behavior.on.null.values=ignore
+```
+
+## Step 9: Start Kafka Connect
+```bash
+bin/connect-standalone.sh config/connect-standalone.properties config/s3-sink-connector.properties
+```
+
+## Verification Commands
+```bash
+# Check if Kafka is running
+bin/kafka-topics.sh --bootstrap-server localhost:9092 --list
+
+# Create test topic
+bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --topic cartevent --partitions 1 --replication-factor 1
+
+# Send test message
+echo '{"id": 1, "message": "test"}' | bin/kafka-console-producer.sh --bootstrap-server localhost:9092 --topic cartevent
+
+# Check S3 bucket for files (after flush.size or rotate interval)
+aws s3 ls s3://<YOUR_BUCKET_NAME>/topics/cartevent/
+```
+
+## Troubleshooting
+- Ensure EC2 has IAM role with S3 write permissions
+- Check security groups allow required ports
+- Verify public IP is correctly set in advertised.listeners
+- Monitor logs for connection errors

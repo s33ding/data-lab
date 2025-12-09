@@ -1,0 +1,96 @@
+KAFKA CONFIGURATION FILES DETAILED EXPLANATION
+==============================================
+
+This document provides detailed information about the configuration files used in the Kafka EC2 setup process.
+
+1. SERVER.PROPERTIES (config/kraft/server.properties)
+====================================================
+
+Purpose: Main Kafka server configuration file for KRaft mode (Kafka Raft metadata mode)
+
+Key Configuration Changes:
+- listeners: Defines network interfaces Kafka binds to
+  * Set to 0.0.0.0:9092 to accept connections from any IP
+  * Format: PLAINTEXT://0.0.0.0:9092
+
+- advertised.listeners: Tells clients how to connect to Kafka
+  * Set to public IP of EC2 instance for external access
+  * Format: PLAINTEXT://<EC2_PUBLIC_IP>:9092
+  * Critical for client connectivity from outside EC2
+
+Why These Changes Matter:
+- Default localhost binding prevents external connections
+- Public IP in advertised.listeners enables client access
+- Port 9092 is Kafka's default broker port
+
+2. CONNECT-STANDALONE.PROPERTIES (config/connect-standalone.properties)
+=====================================================================
+
+Purpose: Configuration for Kafka Connect in standalone mode
+
+Key Configuration Changes:
+- bootstrap.servers: Points Connect to Kafka broker
+  * Set to <EC2_PUBLIC_IP>:9092
+  * Enables Connect to communicate with Kafka cluster
+
+- plugin.path: Directory containing connector plugins
+  * Set to absolute path of connector installation
+  * Example: /home/ubuntu/kafka/connectors/confluentinc-kafka-connect-s3-10.x.x
+  * Required for Connect to load S3 sink connector
+
+Additional Settings:
+- key.converter: How Connect handles message keys
+- value.converter: How Connect handles message values
+- offset.storage.file.filename: Where Connect stores offsets
+
+3. S3-SINK-CONNECTOR.PROPERTIES (config/s3-sink-connector.properties)
+===================================================================
+
+Purpose: Specific configuration for S3 Sink Connector
+
+Core Settings:
+- name: Unique identifier for connector instance
+- connector.class: Java class implementing S3 sink functionality
+- tasks.max: Number of parallel tasks (1 for simple setup)
+- topics: Kafka topics to consume from
+
+S3 Configuration:
+- s3.bucket.name: Target S3 bucket for data storage
+- s3.region: AWS region of the S3 bucket
+- flush.size: Number of records before writing to S3
+- rotate.schedule.interval.ms: Time-based file rotation (60 seconds)
+
+Data Format Settings:
+- storage.class: How data is stored in S3
+- format.class: Output format (JSON in this case)
+- partitioner.class: How data is partitioned in S3
+- timezone: Timestamp timezone for partitioning
+
+Converter Configuration:
+- key.converter/value.converter: JSON format for both keys and values
+- schemas.enable=false: Disables schema registry requirement
+- behavior.on.null.values=ignore: Skips null value records
+
+CONFIGURATION FILE RELATIONSHIPS
+===============================
+
+1. server.properties → Kafka broker runs and accepts connections
+2. connect-standalone.properties → Connect framework starts and connects to Kafka
+3. s3-sink-connector.properties → Specific connector loads and processes data
+
+SECURITY CONSIDERATIONS
+======================
+
+- Current setup uses PLAINTEXT protocol (no encryption)
+- Public IP exposure requires proper security group configuration
+- Consider SASL/SSL for production environments
+- S3 access requires proper IAM roles/credentials
+
+TROUBLESHOOTING TIPS
+===================
+
+- Verify EC2 security groups allow port 9092
+- Ensure S3 bucket exists and has proper permissions
+- Check plugin.path points to correct connector directory
+- Validate JSON format in connector properties file
+- Monitor Connect logs for connection issues

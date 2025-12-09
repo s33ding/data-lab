@@ -25,6 +25,24 @@ tar -xzf debezium.tar.gz
 chown -R ec2-user:ec2-user debezium-connector-postgres
 rm debezium.tar.gz
 
+# Download and install S3 sink connector
+wget -O s3-connector.zip https://d1i4a15mxbxib1.cloudfront.net/api/plugins/confluentinc/kafka-connect-s3/versions/10.5.13/confluentinc-kafka-connect-s3-10.5.13.zip
+unzip s3-connector.zip
+mv confluentinc-kafka-connect-s3-10.5.13 kafka-connect-s3
+chown -R ec2-user:ec2-user kafka-connect-s3
+rm s3-connector.zip
+
+# Download and install Confluent JDBC sink connector
+wget -O jdbc-connector.zip https://d1i4a15mxbxib1.cloudfront.net/api/plugins/confluentinc/kafka-connect-jdbc/versions/10.7.4/confluentinc-kafka-connect-jdbc-10.7.4.zip
+unzip jdbc-connector.zip
+mv confluentinc-kafka-connect-jdbc-10.7.4 kafka-connect-jdbc
+chown -R ec2-user:ec2-user kafka-connect-jdbc
+rm jdbc-connector.zip
+
+# Download MySQL JDBC driver
+cd kafka-connect-jdbc/lib
+wget https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.33/mysql-connector-java-8.0.33.jar
+
 # Create Kafka Connect configuration
 cat > /home/ec2-user/connect-distributed.properties << 'EOF'
 bootstrap.servers=localhost:9092
@@ -62,6 +80,47 @@ cat > /home/ec2-user/postgres-connector.json.template << 'EOF'
 }
 EOF
 
+# Create S3 sink connector template
+cat > /home/ec2-user/s3-sink-connector.json.template << 'EOF'
+{
+  "name": "s3-sink-connector",
+  "config": {
+    "connector.class": "io.confluent.connect.s3.S3SinkConnector",
+    "tasks.max": "1",
+    "topics": "postgres-server.public.users,postgres-server.public.orders",
+    "s3.bucket.name": "S3_BUCKET_PLACEHOLDER",
+    "s3.region": "AWS_REGION_PLACEHOLDER",
+    "flush.size": "1000",
+    "rotate.interval.ms": "60000",
+    "format.class": "io.confluent.connect.s3.format.json.JsonFormat",
+    "partitioner.class": "io.confluent.connect.storage.partitioner.TimeBasedPartitioner",
+    "path.format": "YYYY/MM/dd/HH",
+    "partition.duration.ms": "3600000",
+    "timezone": "UTC",
+    "storage.class": "io.confluent.connect.s3.storage.S3Storage"
+  }
+}
+EOF
+
+# Create MySQL sink connector template
+cat > /home/ec2-user/mysql-sink-connector.json.template << 'EOF'
+{
+  "name": "mysql-sink-connector",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSinkConnector",
+    "connection.url": "jdbc:mysql://MYSQL_HOST_PLACEHOLDER:3306/MYSQL_DB_PLACEHOLDER",
+    "connection.user": "MYSQL_USER_PLACEHOLDER",
+    "connection.password": "MYSQL_PASSWORD_PLACEHOLDER",
+    "topics": "postgres-server.public.users,postgres-server.public.orders",
+    "auto.create": "true",
+    "auto.evolve": "true",
+    "insert.mode": "upsert",
+    "pk.mode": "record_key",
+    "table.name.format": "$${topic}"
+  }
+}
+EOF
+
 # Create configure-debezium script
 cat > /home/ec2-user/configure-debezium.sh << 'EOF'
 #!/bin/bash
@@ -90,12 +149,23 @@ sed -e "s/HOST_PLACEHOLDER/$HOST/g" \
     -e "s/DBNAME_PLACEHOLDER/$DBNAME/g" \
     postgres-connector.json.template > postgres-connector.json
 
-# Deploy connector
+# Create S3 sink connector configuration
+sed -e "s/S3_BUCKET_PLACEHOLDER/${s3_bucket}/g" \
+    -e "s/AWS_REGION_PLACEHOLDER/${aws_region}/g" \
+    s3-sink-connector.json.template > s3-sink-connector.json
+
+# Deploy connectors
 curl -X POST -H "Content-Type: application/json" \
      --data @postgres-connector.json \
      http://localhost:8083/connectors
 
-echo "Debezium connector deployed successfully"
+sleep 5
+
+curl -X POST -H "Content-Type: application/json" \
+     --data @s3-sink-connector.json \
+     http://localhost:8083/connectors
+
+echo "Debezium and S3 sink connectors deployed successfully"
 EOF
 
 # Create systemd service for Zookeeper

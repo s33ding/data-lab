@@ -1,0 +1,42 @@
+1-dowload kafka
+2-install java
+3- exec: bin/kafka-storage.sh random-uuid
+4- exec: bin/kafka-storage.sh format -t <uuid> -c config/kraft/server.properties
+
+5- vim config/kraft/server.properties
+  6- change: listeners and advertised.listeners >>> use: 0.0.0.0
+  7- change: listeners and advertised.listeners >>> use: public ip
+
+8- start server : bin/kafka-server-start.sh config/kraft/server properties
+9- download sink: https://www.confluent.io/hub/confluentinc/kafka-connect-s3
+
+10- config sink: vim config/connect-standalon.properties
+  11- change bootstrap.server: bootstrap.servers=<public of ec2>:9092
+  12- plugin_path: enter in the plugin folder use pwd, copy the path and put it on config/connect-standalon.properties; set plugin.path=<path> 
+ 
+13- vim config/s3-sink-connector.properties #it can be any name
+  exemplo:
+    name=s3-sink-connector
+    connector.class=io.confluent.connect.s3.S3SinkConnector
+    tasks.max=1
+    topics=cartevent
+
+    s3.bucket.name= <bucket-name>
+    s3.region=us-east-1
+    flush.size=5
+    rotate.schedule.interval.ms=60000
+
+    storage.class=io.confluent.connect.s3.storage.S3Storage
+    format.class=io.confluent.connect.s3.format.json.JsonFormat
+    partitioner.class=io.confluent.connect.storage.partitioner.DefaultPartitioner
+    timezone=UTC
+
+    # Converter settings
+    key.converter=org.apache.kafka.connect.json.JsonConverter
+    value.converter=org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable=false
+    value.converter.schemas.enable=false
+    behavior.on.null.values=ignore
+
+
+14- bin/connect-standalone.sh config/connect-standalone.properties config/s3-sink-connector.properties
