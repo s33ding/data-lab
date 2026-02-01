@@ -70,8 +70,7 @@ data-lab/
 │   │   └── deploy-connectors.sh
 │   ├── applications/             # Sample apps & monitoring
 │   │   ├── monitoring/          # Kafka UI, Grafana, Prometheus
-│   │   ├── flask-kafka-integration/
-│   │   └── postgres/
+│   │   └── flask-kafka-integration/
 │   ├── postgres/                 # PostgreSQL setup & testing
 │   │   ├── dataset/             # Sample data & scripts
 │   │   └── postgres-tests/      # Connection & query tests
