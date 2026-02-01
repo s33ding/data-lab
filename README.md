@@ -75,7 +75,10 @@ data-lab/
 │   ├── postgres/                 # PostgreSQL setup & testing
 │   │   ├── dataset/             # Sample data & scripts
 │   │   └── postgres-tests/      # Connection & query tests
-│   └── kafka-connect/           # Kafka utilities
+│   ├── kafka-connect/           # Kafka utilities
+│   ├── important-documents/     # Security groups & documentation
+│   ├── install-all.sh          # Complete deployment script
+│   └── uninstall-all.sh        # Cleanup script
 ├── nodefolder/                   # Kafka cluster & KRaft nodes
 ├── ingress/                      # Load balancer & routing
 ├── s3/                          # S3 buckets & data lake setup
