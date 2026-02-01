@@ -2,15 +2,25 @@
 
 ![Repository Image](assets/repo-img.png)
 
+> **🚧 Status: In Progress** - Simulating OLTP to OLAP integration with a complete data pipeline: PostgreSQL → Kafka → S3 → Athena with Iceberg tables
+
 Enterprise-grade Apache Kafka deployment platform with Change Data Capture, S3 integration, and comprehensive monitoring for production workloads.
 
 ## 🏗️ Architecture
 
 ```
-Applications → Kafka Cluster → S3 Storage
-     ↓            (3 Brokers)       ↑
-PostgreSQL → Kafka Connect ────────┘
-SQL Server   (Debezium CDC)
+OLTP Layer                 Streaming Layer              OLAP Layer
+┌─────────────┐           ┌─────────────────┐          ┌──────────────┐
+│ PostgreSQL  │──CDC──────│  Kafka Cluster │──────────│  Amazon S3   │
+│ SQL Server  │ Debezium  │   (3 Brokers)   │   Sink   │   Storage    │
+│             │           │   KRaft Mode    │ Connector│              │
+└─────────────┘           └─────────────────┘          └──────────────┘
+                                 │                             │
+                          ┌─────────────────┐          ┌──────────────┐
+                          │ Kafka Connect   │          │ Amazon Athena│
+                          │   Platform      │          │ + Iceberg    │
+                          └─────────────────┘          │   Tables     │
+                                                       └──────────────┘
 ```
 
 ## 🚀 Features
