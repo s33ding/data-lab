@@ -2,7 +2,7 @@
 
 ![Repository Image](assets/repo-img.png)
 
-Enterprise-grade Apache Kafka deployment examples and experiments with CDC, S3 integration, and monitoring.
+Enterprise-grade Apache Kafka deployment platform with Change Data Capture, S3 integration, and comprehensive monitoring for production workloads.
 
 ## 🏗️ Architecture
 
@@ -24,7 +24,7 @@ SQL Server   (Debezium CDC)
 ## 📁 Structure
 
 ```
-kafka-eks/
+data-lab/
 ├── infrastructure/     # Kafka cluster & KRaft controller
 ├── connectors/        # Kafka Connect & S3 sink
 ├── applications/      # Sample apps & monitoring
