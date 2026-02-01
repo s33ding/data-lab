@@ -4,7 +4,7 @@ import json
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import random
-from datetime import datetime
+from datetime import datetime, timedelta, timedelta
 import uuid
 
 def get_db_credentials():
@@ -14,26 +14,15 @@ def get_db_credentials():
     return json.loads(response['SecretString'])
 
 def create_connection():
-    """Create PostgreSQL connection - try local first, then remote"""
-    try:
-        # Try local PostgreSQL first
-        return psycopg2.connect(
-            host='localhost',
-            database='postgres',
-            user='postgres',
-            password='postgres',
-            port=5432
-        )
-    except:
-        # Fallback to remote using Secrets Manager
-        creds = get_db_credentials()
-        return psycopg2.connect(
-            host=creds['host'],
-            database=creds['db_name'],
-            user=creds['username'],
-            password=creds['password'],
-            port=5432
-        )
+    """Create PostgreSQL connection to cluster"""
+    # Connect directly to cluster PostgreSQL
+    return psycopg2.connect(
+        host='localhost',
+        database='testdb',
+        user='postgres',
+        password='postgres',
+        port=5433  # Port forward to cluster
+    )
 
 def create_kafka_schema_and_table():
     """Create kafka schema and mcdonalds_sales table"""

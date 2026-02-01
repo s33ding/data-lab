@@ -2,13 +2,13 @@
   "name": "postgres-source-connector",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-    "database.hostname": "postgres.lab.svc.cluster.local",
+    "database.hostname": "postgres-service",
     "database.port": "5432",
     "database.user": "postgres",
-    "database.password": "password",
-    "database.dbname": "mydb",
-    "database.server.name": "postgres",
-    "table.include.list": "public.users,public.orders,public.products,public.transactions",
+    "database.password": "postgres",
+    "database.dbname": "testdb",
+    "database.server.name": "postgres-server",
+    "table.include.list": "public.users,public.orders,public.products,public.transactions,kafka.mcdonalds_sales",
     "plugin.name": "pgoutput",
     "slot.name": "debezium_slot",
     "publication.name": "debezium_publication"

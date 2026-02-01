@@ -8,15 +8,29 @@ data:
     global:
       scrape_interval: 15s
     scrape_configs:
-    - job_name: 'kafka-connect'
+    - job_name: 'prometheus'
       static_configs:
-      - targets: ['kafka-connect-proper:8083']
-    - job_name: 'kafka-brokers'
+      - targets: ['localhost:9090']
+    - job_name: 'node-exporter'
       static_configs:
-      - targets: ['kafka-brokers:9092']
-    - job_name: 'postgres'
-      static_configs:
-      - targets: ['postgres:5432']
+      - targets: ['node-exporter:9100']
+    - job_name: 'kubernetes-cadvisor'
+      scheme: https
+      tls_config:
+        ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+        insecure_skip_verify: true
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      kubernetes_sd_configs:
+      - role: node
+      relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+      - target_label: __address__
+        replacement: kubernetes.default.svc:443
+      - source_labels: [__meta_kubernetes_node_name]
+        regex: (.+)
+        target_label: __metrics_path__
+        replacement: /api/v1/nodes/${1}/proxy/metrics/cadvisor
 ---
 apiVersion: apps/v1
 kind: Deployment
