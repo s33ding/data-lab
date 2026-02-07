@@ -11,7 +11,7 @@ if __name__ == "__main__":
     tests = [
         "check-connection.py",
         "check-mcdonalds.py",
-        "insert-mcdonalds-data.py",
+        "random_insert.py",
         "query-mcdonalds.py"
     ]
     
