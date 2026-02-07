@@ -109,6 +109,7 @@ safe_delete "pvc" "postgres-pvc" $NAMESPACE
 
 # 6. Delete Kafka infrastructure (order matters)
 print_status "Deleting Kafka infrastructure..."
+kubectl delete connector --all -n $NAMESPACE --force --grace-period=0 2>/dev/null || print_warning "No connectors to delete"
 safe_delete "kafka" "kafka-brokers" $NAMESPACE
 safe_delete "kraftcontroller" "kraftcontroller" $NAMESPACE
 safe_delete "kraftcontroller" "kraft-controller" $NAMESPACE
@@ -129,41 +130,26 @@ else
     print_warning "Confluent Operator not found"
 fi
 
-# 10. Delete ingress resources
-print_status "Deleting ingress resources..."
-safe_delete "ingress" "lab-ingress" $NAMESPACE
-safe_delete "ingress" "ingress-iesb" "default"
-
-# 11. Delete persistent volumes
+# 10. Delete persistent volumes
 print_status "Cleaning up persistent volumes..."
 kubectl get pv | grep $NAMESPACE | awk '{print $1}' | xargs -r kubectl delete pv || print_warning "No PVs to delete"
 
-# 12. Clean up IAM resources (be careful here)
-print_status "Cleaning up IAM resources..."
-ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text 2>/dev/null || echo "")
-
-if [[ -n "$ACCOUNT_ID" ]]; then
-    # Detach and delete policy
-    aws iam detach-role-policy --role-name kafka-s3-role --policy-arn arn:aws:iam::$ACCOUNT_ID:policy/kafka-s3-policy 2>/dev/null || print_warning "Policy not attached or doesn't exist"
-    aws iam delete-role --role-name kafka-s3-role 2>/dev/null || print_warning "Role kafka-s3-role not found"
-    aws iam delete-policy --policy-arn arn:aws:iam::$ACCOUNT_ID:policy/kafka-s3-policy 2>/dev/null || print_warning "Policy kafka-s3-policy not found"
-else
-    print_warning "Could not get AWS account ID, skipping IAM cleanup"
-fi
-
-# 13. Optional: Delete namespace (ask user)
+# 11. Optional: Delete namespace (ask user)
 if [[ "$NAMESPACE" == "lab" ]]; then
     read -p "Do you want to delete the 'lab' namespace? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "Deleting lab namespace..."
-        kubectl delete namespace lab --timeout=120s || print_warning "Failed to delete lab namespace"
+        kubectl delete namespace lab --timeout=120s || {
+            print_warning "Namespace stuck, removing finalizers..."
+            kubectl get namespace lab -o json | jq '.spec.finalizers = []' | kubectl replace --raw /api/v1/namespaces/lab/finalize -f - || print_error "Failed to remove finalizers"
+        }
     else
         print_warning "Keeping lab namespace"
     fi
 fi
 
-# 13. Final cleanup check
+# 12. Final cleanup check
 print_status "Performing final cleanup check..."
 remaining_resources=$(kubectl get all -n $NAMESPACE 2>/dev/null | grep -v "service/kubernetes" | wc -l)
 if [[ $remaining_resources -gt 1 ]]; then

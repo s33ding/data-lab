@@ -27,7 +27,11 @@ kubectl apply -f infrastructure/kafka-brokers.yaml -n lab
 
 # Wait for Kafka to be ready
 echo "⏳ Waiting for Kafka to be ready..."
-kubectl wait --for=condition=ready pod -l platform.confluent.io/type=kafka --timeout=300s -n lab
+until kubectl get pods -n lab -l app=kafka-brokers 2>/dev/null | grep -q kafka; do
+  echo "Waiting for Kafka pods to be created..."
+  sleep 5
+done
+kubectl wait --for=condition=ready pod -l app=kafka-brokers -n lab --timeout=300s
 
 # Deploy PostgreSQL
 echo "🐘 Deploying PostgreSQL..."
