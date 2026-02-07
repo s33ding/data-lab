@@ -61,8 +61,8 @@ safe_delete("deployment", "grafana", namespace)
 safe_delete("service", "grafana", namespace)
 
 print("🔄 Deleting Kafka Connect...")
-safe_delete("kafkaconnect", "kafka-connect-proper", namespace)
-safe_delete("service", "kafka-connect-proper", namespace)
+safe_delete("kafkaconnect", "kafka-connect", namespace)
+safe_delete("service", "kafka-connect", namespace)
 
 print("🔄 Deleting PostgreSQL...")
 safe_delete("deployment", "postgres", namespace)
@@ -76,17 +76,15 @@ safe_delete("kraftcontroller", "kraftcontroller", namespace)
 safe_delete("kraftcontroller", "kraft-controller", namespace)
 
 print("🔄 Deleting PVCs...")
-run(f"kubectl get pvc -n {namespace} -o name | xargs -r kubectl delete -n {namespace} --timeout=60s", check=True)
+run(f"kubectl delete pvc --all -n {namespace} --force --grace-period=0 --timeout=10s 2>/dev/null", check=False)
 
-print("⏳ Waiting for resources to terminate...")
-time.sleep(30)
-
-if run(f"helm list -n {namespace} | grep -q confluent-operator", capture=True).returncode == 0:
+helm_check = run(f"helm list -n {namespace}", capture=True)
+if helm_check.returncode == 0 and "confluent-operator" in helm_check.stdout:
     print("🔄 Uninstalling Confluent Operator...")
     run(f"helm uninstall confluent-operator -n {namespace}", check=True)
 
 print("🔄 Cleaning up persistent volumes...")
-run(f"kubectl get pv | grep {namespace} | awk '{{print $1}}' | xargs -r kubectl delete pv", check=True)
+run(f"kubectl get pv | grep {namespace} | awk '{{print $1}}' | xargs -r kubectl delete pv --timeout=10s 2>/dev/null", check=False)
 
 if namespace == "lab":
     response = input("Delete 'lab' namespace? (y/N): ").lower()

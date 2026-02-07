@@ -22,6 +22,6 @@ kubectl exec -n lab kafka-brokers-0 -- kafka-console-consumer \
 
 # 3. Check connector status
 echo "3. Checking connector status..."
-kubectl exec -n lab kafka-connect-proper-0 -- curl -s http://localhost:8083/connectors/postgres-source-connector/status | jq .
+kubectl exec kafka-connect-0 -- curl -s http://localhost:8083/connectors/postgres-source-connector/status | jq .
 
 echo "=== Integration test complete ==="

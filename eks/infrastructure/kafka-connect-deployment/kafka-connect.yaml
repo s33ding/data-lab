@@ -1,7 +1,7 @@
 apiVersion: platform.confluent.io/v1beta1
 kind: Connect
 metadata:
-  name: kafka-connect-proper
+  name: kafka-connect
   namespace: lab
 spec:
   replicas: 1
@@ -14,7 +14,7 @@ spec:
       - offset.storage.replication.factor=1
       - status.storage.replication.factor=1
       - plugin.path=/usr/share/java,/usr/share/confluent-hub-components
-      - group.id=default.kafka-connect-proper
+      - group.id=default.kafka-connect
   dependencies:
     kafka:
       bootstrapEndpoint: kafka-brokers:9092

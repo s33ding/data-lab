@@ -7,7 +7,7 @@ spec:
   class: "io.confluent.connect.s3.S3SinkConnector"
   taskMax: 1
   connectClusterRef:
-    name: kafka-connect-proper
+    name: kafka-connect
   configs:
     topics: "playground-topic"
     s3.region: "sa-east-1"

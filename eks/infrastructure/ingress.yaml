@@ -8,6 +8,8 @@ metadata:
     alb.ingress.kubernetes.io/target-type: ip
     alb.ingress.kubernetes.io/healthcheck-path: /health
     alb.ingress.kubernetes.io/success-codes: 200,302,404
+    alb.ingress.kubernetes.io/security-groups: sg-0bf9875af00971cc2
+    alb.ingress.kubernetes.io/manage-backend-security-group-rules: "true"
     alb.ingress.kubernetes.io/conditions.lab: |
       [{"field":"host-header","values":["lab.dataiesb.com"]}]
 spec:

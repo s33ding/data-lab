@@ -28,7 +28,7 @@ spec:
         - name: KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME
           value: "kafka-connect"
         - name: KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS
-          value: "http://kafka-connect-proper:8083"
+          value: "http://kafka-connect-svc:8083"
         - name: SERVER_SERVLET_CONTEXT_PATH
           value: "/kafka"
         - name: AUTH_TYPE

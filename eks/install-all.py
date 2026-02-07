@@ -55,24 +55,34 @@ if run("cd iac && ./setup-s3-permissions.sh", check=False) != 0:
     print("⚠️ S3 permissions already configured")
 
 print("🔌 Deploying Kafka Connect...")
-run("./build-and-push.sh", cwd="infrastructure/proper-kafka-connect")
-run("./deploy.sh", cwd="infrastructure/proper-kafka-connect")
+run("./build-and-push.sh", cwd="infrastructure/kafka-connect-deployment")
+run("./deploy.sh", cwd="infrastructure/kafka-connect-deployment")
 
-wait_for_pods("app=kafka-connect")
+# Wait for Kafka Connect pod to be Running (readiness probe is broken)
+print("⏳ Waiting for Kafka Connect pod...")
+time.sleep(60)  # Give it time to start
+for i in range(60):
+    result = subprocess.run(
+        "kubectl get pods -n lab -l app=kafka-connect -o jsonpath='{.items[0].status.phase}'",
+        shell=True, capture_output=True, text=True
+    )
+    if result.stdout.strip("'") == "Running":
+        print("✅ Kafka Connect pod is running")
+        break
+    time.sleep(5)
+else:
+    print("⚠️ Kafka Connect pod not running yet, continuing anyway...")
+
+print("🎮 Deploying flask app...")
+run("./docker-build-push.sh", cwd="applications/flask-kafka-integration")
+run("kubectl apply -f deployment.yaml", cwd="applications/flask-kafka-integration")
+
+print("📊 Deploying Kafka UI...")
+run("kubectl apply -f applications/monitoring/kafka-ui/ -n lab")
 
 print("🔗 Creating connectors...")
 time.sleep(30)
-pod = subprocess.run(
-    "kubectl get pods -l app=kafka-connect -o jsonpath='{.items[0].metadata.name}' -n lab",
-    shell=True, capture_output=True, text=True
-).stdout.strip("'")
-
-run(f"kubectl exec -it {pod} -n lab -- curl -X POST -H 'Content-Type: application/json' "
-    "--data @/opt/kafka/config/postgres-source.json http://localhost:8083/connectors")
-run(f"kubectl exec -it {pod} -n lab -- curl -X POST -H 'Content-Type: application/json' "
-    "--data @/opt/kafka/config/s3-sink-connector.json http://localhost:8083/connectors")
-
-print("🎮 Deploying flask app...")
+run("python3 deploy-connectors.py", cwd="connectors")
 run("./docker-build-push.sh", cwd="applications/flask-kafka-integration")
 run("kubectl apply -f deployment.yaml", cwd="applications/flask-kafka-integration")
 

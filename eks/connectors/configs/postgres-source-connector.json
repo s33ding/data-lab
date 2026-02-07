@@ -8,6 +8,7 @@
     "database.password": "postgres",
     "database.dbname": "testdb",
     "database.server.name": "postgres-server",
+    "topic.prefix": "postgres-server",
     "table.include.list": "public.users,public.orders,public.products,public.transactions,kafka.mcdonalds_sales",
     "plugin.name": "pgoutput",
     "slot.name": "debezium_slot",

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-POD_NAME="kafka-connect-proper-0"
+POD_NAME="kafka-connect-0"
 CONNECT_URL="http://localhost:8083"
 
 if [ $# -eq 0 ]; then

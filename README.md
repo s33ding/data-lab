@@ -60,26 +60,24 @@ data-lab/
 │   │   ├── kafka-s3-policy.json
 │   │   ├── trust-policy.json
 │   │   └── setup-s3-permissions.sh
-│   ├── infrastructure/           # Kafka cluster components
+│   ├── infrastructure/           # Core infrastructure components
 │   │   ├── kafka-brokers.yaml
 │   │   ├── kraft-controller.yaml
+│   │   ├── kafka-connect-deployment/ # Kafka Connect cluster
+│   │   ├── namespace.yaml
 │   │   └── ingress.yaml
-│   ├── connectors/               # Kafka Connect & CDC
-│   │   ├── configs/             # Connector configurations
-│   │   ├── proper-kafka-connect/ # Connect cluster setup
+│   ├── connectors/               # Connector configs & utilities
+│   │   ├── configs/             # Connector JSON configurations
 │   │   └── deploy-connectors.sh
 │   ├── applications/             # Sample apps & monitoring
 │   │   ├── monitoring/          # Kafka UI, Grafana, Prometheus
-│   │   └── flask-kafka-integration/
-│   ├── postgres/                 # PostgreSQL setup & testing
-│   │   ├── dataset/             # Sample data & scripts
-│   │   └── postgres-tests/      # Connection & query tests
-│   ├── kafka-connect/           # Kafka utilities
+│   │   ├── flask-kafka-integration/
+│   │   └── postgres/            # PostgreSQL setup & testing
+│   ├── kafka-connect/           # Kafka CLI utilities
 │   ├── important-documents/     # Security groups & documentation
-│   ├── install-all.sh          # Complete deployment script
-│   └── uninstall-all.sh        # Cleanup script
+│   ├── install-all.py          # Python deployment script
+│   └── uninstall-all.py        # Python cleanup script
 ├── nodefolder/                   # Kafka cluster & KRaft nodes
-├── ingress/                      # Load balancer & routing
 ├── s3/                          # S3 buckets & data lake setup
 ├── athena/                      # Athena queries & Iceberg tables
 ├── assets/                      # Documentation images
@@ -89,11 +87,11 @@ data-lab/
 ## 🚀 Quick Deploy
 
 ```bash
-# Install everything
-./install-all.sh
+# Install everything (Python)
+python3 install-all.py
 
-# Uninstall everything  
-./uninstall-all.sh
+# Uninstall everything (Python)
+python3 uninstall-all.py
 
 # Access Kafka UI
 open http://app.dataiesb.com/kafka-ui

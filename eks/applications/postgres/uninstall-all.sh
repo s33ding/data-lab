@@ -9,7 +9,7 @@ kubectl delete -f applications/monitoring/kafka-ui/ --ignore-not-found=true
 
 # Delete Kafka Connect
 echo "🔌 Removing Kafka Connect..."
-kubectl delete connect kafka-connect-proper --ignore-not-found=true
+kubectl delete connect debezium-connect --ignore-not-found=true
 
 # Delete Kafka Brokers
 echo "☕ Removing Kafka Brokers..."
