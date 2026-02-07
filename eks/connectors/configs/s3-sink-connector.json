@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "io.confluent.connect.s3.S3SinkConnector",
     "tasks.max": "1",
-    "topics.regex": "postgres-server\\.public\\.(users|orders)|postgres-server\\.kafka\\.mcdonalds_sales",
+    "topics": "postgres-server.kafka.mcdonalds_sales,postgres-server.kafka.mcdonalds_inventory,postgres-server.kafka.mcdonalds_employees",
     "s3.region": "us-east-1",
     "s3.bucket.name": "s33ding-kafka-output",
     "flush.size": "1",

@@ -68,10 +68,63 @@ metadata:
   namespace: lab
 data:
   init.sql: |
-    CREATE TABLE users (id SERIAL PRIMARY KEY, name VARCHAR(100), email VARCHAR(100));
-    CREATE TABLE orders (id SERIAL PRIMARY KEY, user_id INT, product VARCHAR(100), amount DECIMAL(10,2));
-    INSERT INTO users (name, email) VALUES ('John Doe', 'john@example.com');
-    INSERT INTO orders (user_id, product, amount) VALUES (1, 'Laptop', 999.99);
+    CREATE SCHEMA IF NOT EXISTS kafka;
+    
+    CREATE TABLE IF NOT EXISTS kafka.mcdonalds_sales (
+        id SERIAL PRIMARY KEY,
+        store_id INTEGER NOT NULL,
+        store_name VARCHAR(100) NOT NULL,
+        transaction_id VARCHAR(50) NOT NULL,
+        transaction_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        product_code VARCHAR(20) NOT NULL,
+        product_name VARCHAR(100) NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        quantity INTEGER NOT NULL,
+        unit_price DECIMAL(10,2) NOT NULL,
+        total_amount DECIMAL(10,2) NOT NULL,
+        payment_method VARCHAR(20) NOT NULL,
+        customer_type VARCHAR(20) DEFAULT 'regular',
+        promotion_code VARCHAR(20),
+        region VARCHAR(50) NOT NULL,
+        city VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS kafka.mcdonalds_inventory (
+        id SERIAL PRIMARY KEY,
+        store_id INTEGER NOT NULL,
+        product_code VARCHAR(20) NOT NULL,
+        product_name VARCHAR(100) NOT NULL,
+        current_stock INTEGER NOT NULL,
+        min_stock INTEGER NOT NULL,
+        max_stock INTEGER NOT NULL,
+        last_restock_date TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE TABLE IF NOT EXISTS kafka.mcdonalds_employees (
+        id SERIAL PRIMARY KEY,
+        store_id INTEGER NOT NULL,
+        employee_id VARCHAR(20) NOT NULL,
+        name VARCHAR(100) NOT NULL,
+        position VARCHAR(50) NOT NULL,
+        hire_date DATE NOT NULL,
+        shift VARCHAR(20) NOT NULL,
+        hourly_rate DECIMAL(10,2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    
+    CREATE INDEX IF NOT EXISTS idx_mcdonalds_sales_store_id ON kafka.mcdonalds_sales(store_id);
+    CREATE INDEX IF NOT EXISTS idx_mcdonalds_sales_date ON kafka.mcdonalds_sales(transaction_date);
+    CREATE INDEX IF NOT EXISTS idx_mcdonalds_inventory_store_id ON kafka.mcdonalds_inventory(store_id);
+    CREATE INDEX IF NOT EXISTS idx_mcdonalds_employees_store_id ON kafka.mcdonalds_employees(store_id);
+    
+    ALTER TABLE kafka.mcdonalds_sales REPLICA IDENTITY FULL;
+    ALTER TABLE kafka.mcdonalds_inventory REPLICA IDENTITY FULL;
+    ALTER TABLE kafka.mcdonalds_employees REPLICA IDENTITY FULL;
 ---
 apiVersion: v1
 kind: ConfigMap
