@@ -35,7 +35,7 @@ kubectl wait --for=condition=ready pod -l app=kafka-brokers -n lab --timeout=300
 
 # Deploy PostgreSQL
 echo "🐘 Deploying PostgreSQL..."
-kubectl apply -f applications/postgres.yaml -n lab
+kubectl apply -f applications/postgres/postgres.yaml -n lab
 kubectl wait --for=condition=ready pod -l app=postgres --timeout=180s -n lab
 
 # Setup IAM and S3 permissions
