@@ -58,6 +58,25 @@ print("🔌 Deploying Kafka Connect...")
 run("./build-and-push.sh", cwd="infrastructure/kafka-connect-deployment")
 run("./deploy.sh", cwd="infrastructure/kafka-connect-deployment")
 
+print("🌐 Deploying ingress...")
+run("kubectl apply -f infrastructure/ingress.yaml")
+
+print("🔗 Configuring Route53...")
+print("⏳ Waiting for ALB to be provisioned...")
+for i in range(60):
+    result = subprocess.run(
+        "kubectl get ingress lab-ingress -n lab -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
+        shell=True, capture_output=True, text=True
+    )
+    if result.stdout.strip("'"):
+        print("✅ ALB is ready")
+        break
+    time.sleep(5)
+else:
+    print("⚠️ ALB not ready yet, continuing anyway...")
+
+run("./setup-route53.sh", cwd="infrastructure")
+
 # Wait for Kafka Connect pod to be Running (readiness probe is broken)
 print("⏳ Waiting for Kafka Connect pod...")
 time.sleep(60)  # Give it time to start
@@ -83,11 +102,6 @@ run("kubectl apply -f applications/monitoring/kafka-ui/ -n lab")
 print("🔗 Creating connectors...")
 time.sleep(30)
 run("python3 deploy-connectors.py", cwd="connectors")
-run("./docker-build-push.sh", cwd="applications/flask-kafka-integration")
-run("kubectl apply -f deployment.yaml", cwd="applications/flask-kafka-integration")
-
-print("📊 Deploying Kafka UI...")
-run("kubectl apply -f applications/monitoring/kafka-ui/ -n lab")
 
 print("✅ Installation complete!")
 print("🌐 Access Kafka UI: http://app.dataiesb.com/kafka-ui")
