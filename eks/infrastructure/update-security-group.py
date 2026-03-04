@@ -13,6 +13,13 @@ def run(cmd, capture=True):
 def get_current_ip():
     ipv4 = run("curl -s -4 ifconfig.me")
     ipv6 = run("curl -s -6 ifconfig.me 2>/dev/null || echo ''")
+    # Normalize IPv6 to compressed format if present
+    if ipv6 and ':' in ipv6:
+        try:
+            from ipaddress import IPv6Address
+            ipv6 = IPv6Address(ipv6).compressed
+        except:
+            ipv6 = ''
     return ipv4, ipv6
 
 def get_existing_rules(port):
@@ -26,9 +33,12 @@ def revoke_rule(port, cidr, is_ipv6=False):
     run(f"aws ec2 revoke-security-group-ingress --group-id {SG_ID} --protocol tcp "
         f"--port {port} --cidr {cidr} --region {REGION} 2>/dev/null", capture=False)
 
-def authorize_rule(port, cidr):
-    run(f"aws ec2 authorize-security-group-ingress --group-id {SG_ID} --protocol tcp "
-        f"--port {port} --cidr {cidr} --region {REGION}", capture=False)
+def authorize_rule(port, cidr, is_ipv6=False):
+    if is_ipv6:
+        cmd = f"aws ec2 authorize-security-group-ingress --group-id {SG_ID} --ip-permissions IpProtocol=tcp,FromPort={port},ToPort={port},Ipv6Ranges='[{{CidrIpv6={cidr}}}]' --region {REGION}"
+    else:
+        cmd = f"aws ec2 authorize-security-group-ingress --group-id {SG_ID} --protocol tcp --port {port} --cidr {cidr} --region {REGION}"
+    run(cmd, capture=False)
 
 print("🔒 Updating Security Group to allow only your current IP...")
 
@@ -52,10 +62,10 @@ for port in [80, 443]:
 print("✅ Adding rules for current IP...")
 for port in [80, 443]:
     print(f"  Adding IPv4 rule: {ipv4}/32 on port {port}")
-    authorize_rule(port, f"{ipv4}/32")
+    authorize_rule(port, f"{ipv4}/32", is_ipv6=False)
     if ipv6:
         print(f"  Adding IPv6 rule: {ipv6}/128 on port {port}")
-        authorize_rule(port, f"{ipv6}/128")
+        authorize_rule(port, f"{ipv6}/128", is_ipv6=True)
 
 print("\n✅ Security group updated successfully!")
 print(f"🔒 Only your current IP can access the ingress:")
