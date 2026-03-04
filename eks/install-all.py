@@ -58,39 +58,39 @@ print("🔌 Deploying Kafka Connect...")
 run("./build-and-push.sh", cwd="infrastructure/kafka-connect-deployment")
 run("./deploy.sh", cwd="infrastructure/kafka-connect-deployment")
 
+print("🔒 Updating security group with current IP...")
+run("python3 update-security-group.py", cwd="infrastructure")
+
 print("🌐 Deploying ingress...")
 run("kubectl apply -f infrastructure/ingress.yaml")
 
 print("🔗 Configuring Route53...")
 print("⏳ Waiting for ALB to be provisioned...")
+alb_hostname = None
 for i in range(60):
     result = subprocess.run(
         "kubectl get ingress lab-ingress -n lab -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'",
         shell=True, capture_output=True, text=True
     )
-    if result.stdout.strip("'"):
-        print("✅ ALB is ready")
-        break
-    time.sleep(5)
+    hostname = result.stdout.strip("'")
+    if hostname:
+        # Verify ALB is actually active
+        alb_check = subprocess.run(
+            f"aws elbv2 describe-load-balancers --region sa-east-1 --query \"LoadBalancers[?DNSName=='{hostname}'].State.Code\" --output text",
+            shell=True, capture_output=True, text=True
+        )
+        if alb_check.stdout.strip() == "active":
+            print("✅ ALB is active")
+            alb_hostname = hostname
+            break
+    time.sleep(10)
 else:
     print("⚠️ ALB not ready yet, continuing anyway...")
 
-run("./setup-route53.sh", cwd="infrastructure")
-
-# Wait for Kafka Connect pod to be Running (readiness probe is broken)
-print("⏳ Waiting for Kafka Connect pod...")
-time.sleep(60)  # Give it time to start
-for i in range(60):
-    result = subprocess.run(
-        "kubectl get pods -n lab -l app=kafka-connect -o jsonpath='{.items[0].status.phase}'",
-        shell=True, capture_output=True, text=True
-    )
-    if result.stdout.strip("'") == "Running":
-        print("✅ Kafka Connect pod is running")
-        break
-    time.sleep(5)
+if alb_hostname:
+    run("./setup-route53.sh", cwd="infrastructure")
 else:
-    print("⚠️ Kafka Connect pod not running yet, continuing anyway...")
+    print("⚠️ Skipping Route53 setup - ALB not ready")
 
 print("🎮 Deploying flask app...")
 run("./docker-build-push.sh", cwd="applications/flask-kafka-integration")

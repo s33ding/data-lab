@@ -13,6 +13,23 @@ fi
 
 echo "📍 ALB Hostname: $ALB_HOSTNAME"
 
+# Wait for ALB to be active
+echo "⏳ Waiting for ALB to be active..."
+for i in {1..30}; do
+    ALB_STATE=$(aws elbv2 describe-load-balancers --region sa-east-1 \
+        --query "LoadBalancers[?DNSName=='$ALB_HOSTNAME'].State.Code" --output text)
+    if [ "$ALB_STATE" = "active" ]; then
+        echo "✅ ALB is active"
+        break
+    fi
+    echo "Waiting... ($i/30) - Current state: $ALB_STATE"
+    sleep 10
+done
+
+if [ "$ALB_STATE" != "active" ]; then
+    echo "⚠️ Warning: ALB is not active yet, but continuing..."
+fi
+
 # Get hosted zone ID
 HOSTED_ZONE_ID=$(aws route53 list-hosted-zones-by-name --query "HostedZones[?Name=='dataiesb.com.'].Id" --output text | cut -d'/' -f3)
 
