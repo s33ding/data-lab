@@ -18,7 +18,7 @@ cat > trust-policy.json << EOF
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "oidc.eks.sa-east-1.amazonaws.com/id/$OIDC_ID:sub": "system:serviceaccount:default:kafka-connect-sa"
+          "oidc.eks.sa-east-1.amazonaws.com/id/$OIDC_ID:sub": "system:serviceaccount:lab:kafka-connect-sa"
         }
       }
     }
@@ -31,8 +31,4 @@ aws iam update-assume-role-policy \
   --role-name KafkaConnectS3Role \
   --policy-document file://trust-policy.json
 
-# Create service account with annotation
-kubectl create serviceaccount kafka-connect-sa || echo "ServiceAccount already exists"
-kubectl annotate serviceaccount kafka-connect-sa eks.amazonaws.com/role-arn=arn:aws:iam::248189947068:role/KafkaConnectS3Role --overwrite
-
-echo "Setup complete. Update your Kafka Connect deployment to use serviceAccountName: kafka-connect-sa"
+echo "Setup complete. Kafka Connect service account in lab namespace is now authorized."

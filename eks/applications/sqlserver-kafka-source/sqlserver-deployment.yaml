@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: sqlserver
-  namespace: lab
+  namespace: default
 spec:
   replicas: 1
   selector:
@@ -13,13 +13,6 @@ spec:
       labels:
         app: sqlserver
     spec:
-      tolerations:
-      - key: "lab"
-        operator: "Equal"
-        value: "true"
-        effect: "NoSchedule"
-      nodeSelector:
-        role: "lab"
       containers:
       - name: sqlserver
         image: mcr.microsoft.com/mssql/server:2022-latest
@@ -29,7 +22,10 @@ spec:
         - name: ACCEPT_EULA
           value: "Y"
         - name: SA_PASSWORD
-          value: "YourStrong@Passw0rd"
+          valueFrom:
+            secretKeyRef:
+              name: sqlserver-secret
+              key: SA_PASSWORD
         - name: MSSQL_AGENT_ENABLED
           value: "true"
         volumeMounts:
@@ -37,30 +33,36 @@ spec:
           mountPath: /var/opt/mssql
       volumes:
       - name: sqlserver-data
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: sqlserver-data-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sqlserver-data-pvc
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: gp3
+  resources:
+    requests:
+      storage: 120Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: sqlserver-service
-  namespace: lab
+  namespace: default
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: external
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
 spec:
   selector:
     app: sqlserver
   ports:
   - port: 1433
     targetPort: 1433
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: sqlserver-service
-  namespace: lab
-spec:
-  selector:
-    app: sqlserver
-  ports:
-  - port: 1433
-    targetPort: 1433
-  type: ClusterIP
+    protocol: TCP
+  type: LoadBalancer

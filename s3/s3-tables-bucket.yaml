@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'S3 Tables for iFood data'
+
+Resources:
+  IFoodTableBucket:
+    Type: AWS::S3Tables::TableBucket
+    Properties:
+      TableBucketName: kafka-ifood-tbl
+
+Outputs:
+  TableBucketArn:
+    Description: ARN of the S3 table bucket
+    Value: !Sub 'arn:aws:s3tables:${AWS::Region}:${AWS::AccountId}:bucket/kafka-ifood-tbl'

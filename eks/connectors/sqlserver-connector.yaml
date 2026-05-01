@@ -1,0 +1,25 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: sqlserver-source-connector
+  namespace: default
+  labels:
+    strimzi.io/cluster: debezium-connect
+spec:
+  class: io.debezium.connector.sqlserver.SqlServerConnector
+  tasksMax: 1
+  config:
+    database.hostname: sqlserver-service
+    database.port: 1433
+    database.user: sa
+    database.password: YourStrong@Passw0rd
+    database.names: TestDB
+    database.server.name: sqlserver
+    table.include.list: kafka.ifood_orders,kafka.ifood_order_items
+    database.history.kafka.bootstrap.servers: kafka-cluster-kafka-bootstrap:9092
+    database.history.kafka.topic: schema-changes.sqlserver
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+    topic.prefix: sqlserver

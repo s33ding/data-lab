@@ -1,0 +1,50 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: streamlit-app-sa
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::248189947068:role/eksctl-sas-6881323-eks-addon-iamserviceaccoun-Role1-iqPbclm7KgTx
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-app
+  namespace: default
+  labels:
+    app: report-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: report-app
+  template:
+    metadata:
+      labels:
+        app: report-app
+    spec:
+      serviceAccountName: streamlit-app-sa
+      containers:
+      - name: report-app
+        image: 248189947068.dkr.ecr.us-east-1.amazonaws.com/report-app:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: AWS_DEFAULT_REGION
+          value: us-east-1
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: report-app-service
+  namespace: default
+  labels:
+    app: report-app
+spec:
+  type: ClusterIP
+  selector:
+    app: report-app
+  ports:
+  - port: 80
+    targetPort: 8501

@@ -1,0 +1,33 @@
+{
+  "name": "ifood_sqlserver_source",
+  "config": {
+    "connector.class": "io.debezium.connector.sqlserver.SqlServerConnector",
+    "tasks.max": "1",
+    "database.hostname": "sqlserver-service.lab.svc.cluster.local",
+    "database.port": "1433",
+    "database.user": "sa",
+    "database.password": "YourStrong@Passw0rd",
+    "database.names": "TestDB",
+    "database.server.name": "ifood",
+    "database.encrypt": "false",
+    "database.trustServerCertificate": "true",
+    "table.include.list": "kafka.simple_table",
+    "schema.history.internal.kafka.bootstrap.servers": "kafka-brokers:9092",
+    "schema.history.internal.kafka.topic": "schema-changes.ifood",
+    "snapshot.mode": "initial",
+    "snapshot.isolation.mode": "read_committed",
+    "snapshot.locking.mode": "none",
+    "include.schema.changes": "false",
+    "decimal.handling.mode": "string",
+    "topic.creation.enable": "true",
+    "topic.creation.default.replication.factor": "1",
+    "topic.creation.default.partitions": "3",
+    "topic.creation.default.cleanup.policy": "delete",
+    "topic.creation.default.retention.ms": "604800000",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+    "topic.prefix": "ifood"
+  }
+}

@@ -1,0 +1,87 @@
+global:
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: 248189947068.dkr.ecr.us-east-1.amazonaws.com
+  repository: spark
+  tag: latest
+  pullPolicy: Always
+
+master:
+  command:
+    - /opt/spark/bin/spark-class
+  args:
+    - org.apache.spark.deploy.master.Master
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+  networkPolicy:
+    enabled: false
+  extraEnvVars:
+    - name: TRINO_HOST
+      value: "trino.trino.svc.cluster.local"
+    - name: TRINO_PORT
+      value: "8080"
+    - name: SPARK_DAEMON_MEMORY
+      value: "4g"
+    - name: SPARK_DRIVER_MEMORY
+      value: "4g"
+  extraVolumeMounts:
+    - name: spark-data
+      mountPath: /data
+  extraVolumes:
+    - name: spark-data
+      persistentVolumeClaim:
+        claimName: spark-data-pvc
+  containerSecurityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+
+worker:
+  command:
+    - /opt/spark/bin/spark-class
+  args:
+    - org.apache.spark.deploy.worker.Worker
+    - spark://spark-master-svc:7077
+  replicaCount: 3
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "2Gi"
+    limits:
+      cpu: "2000m"
+      memory: "4Gi"
+  networkPolicy:
+    enabled: false
+  extraEnvVars:
+    - name: TRINO_HOST
+      value: "trino.trino.svc.cluster.local"
+    - name: TRINO_PORT
+      value: "8080"
+    - name: SPARK_EXECUTOR_MEMORY
+      value: "4g"
+  extraVolumeMounts:
+    - name: spark-data
+      mountPath: /data
+  extraVolumes:
+    - name: spark-data
+      persistentVolumeClaim:
+        claimName: spark-data-pvc
+  containerSecurityContext:
+    runAsUser: 1001
+    runAsGroup: 1001
+
+serviceAccount:
+  create: true
+  name: spark
+  automountServiceAccountToken: true
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::248189947068:role/spark-data-science"
+
+service:
+  type: ClusterIP

@@ -1,0 +1,33 @@
+# Additional ServiceAccounts from the old cluster (default namespace):
+#
+# - aurya-backend-sa
+# - aurya-frontend-sa
+# - aurya-service-account
+# - govsananga-sa
+# - my-grafana
+# - my-prometheus-alertmanager
+# - my-prometheus-kube-state-metrics
+# - my-prometheus-prometheus-node-exporter
+# - my-prometheus-prometheus-pushgateway
+# - my-prometheus-server
+# - hub (JupyterHub)
+# - user-scheduler (JupyterHub)
+# - continuous-image-puller (JupyterHub)
+# - kafka, kafka-connect-sa, kafka-provisioning
+#
+# Additional ConfigMaps:
+# - aurya-config
+# - hub (JupyterHub)
+# - jupyter-config
+# - metabase-athena-config
+# - psd-app-code
+# - s3-nginx-config / s3-proxy-config
+# - user-scheduler (JupyterHub)
+#
+# Additional Secrets:
+# - airflow-* (broker-url, fernet-key, git-ssh-secret, redis-password, secrets)
+# - grafana-kube-prometheus-st-admission
+# - hub (JupyterHub)
+# - metabase-athena-secret / metabase-db-secrets
+# - pgadmin-secret
+# - rds-secret

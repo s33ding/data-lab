@@ -18,7 +18,9 @@ spec:
         image: grafana/grafana:latest
         ports:
         - containerPort: 3000
-        volumeMounts: []
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
         env:
         - name: GF_SECURITY_ADMIN_USER
           valueFrom:
@@ -44,7 +46,10 @@ spec:
           value: "postgres"
         - name: GF_DATABASE_PASSWORD
           value: "password"
-      volumes: []
+      volumes:
+      - name: grafana-storage
+        persistentVolumeClaim:
+          claimName: grafana-pvc
 ---
 apiVersion: v1
 kind: Service

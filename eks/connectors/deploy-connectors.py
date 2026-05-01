@@ -49,6 +49,16 @@ else:
 deploy_connector("configs/postgres-source-connector.json", "PostgreSQL Source Connector")
 time.sleep(2)
 deploy_connector("configs/iceberg-bronze-s3-sink-connector.json", "Iceberg Bronze S3 Sink Connector")
+time.sleep(2)
+deploy_connector("configs/ifood-iceberg-s3-tables-connector.json", "iFood Iceberg S3 Tables Connector")
+
+# Deploy SQL Server connector via kubectl
+print("📦 Deploying SQL Server Source Connector...")
+output, code = run("kubectl apply -f sqlserver-connector.yaml")
+if code == 0:
+    print("✅ SQL Server Source Connector deployed")
+else:
+    print(f"⚠️ SQL Server Source Connector failed: {output}")
 
 # Check status
 time.sleep(2)

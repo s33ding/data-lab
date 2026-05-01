@@ -9,7 +9,7 @@
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "oidc.eks.sa-east-1.amazonaws.com/id/49AAAAD6B28AC45FB4ED2C82B99F3532:sub": "system:serviceaccount:default:kafka-connect-sa"
+          "oidc.eks.sa-east-1.amazonaws.com/id/49AAAAD6B28AC45FB4ED2C82B99F3532:sub": "system:serviceaccount:lab:kafka-connect-sa"
         }
       }
     }

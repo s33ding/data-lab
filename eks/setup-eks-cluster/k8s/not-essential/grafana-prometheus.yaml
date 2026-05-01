@@ -1,0 +1,18 @@
+# Grafana was installed via Helm on the old cluster:
+#   helm install my-grafana grafana/grafana -n default
+#
+# Prometheus was installed via Helm:
+#   helm install my-prometheus prometheus-community/prometheus -n default
+#
+# Relevant secrets to recreate:
+#   - my-grafana (admin password)
+#
+# ConfigMaps saved on old cluster:
+#   - my-grafana
+#   - my-prometheus-alertmanager
+#   - my-prometheus-server
+#
+# To export from old cluster:
+#   kubectl --context sa-east-1-cluster get configmap my-grafana -n default -o yaml
+#   kubectl --context sa-east-1-cluster get configmap my-prometheus-server -n default -o yaml
+#   kubectl --context sa-east-1-cluster get secret my-grafana -n default -o yaml

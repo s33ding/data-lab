@@ -8,7 +8,7 @@
     "database.password": "YourStrong@Passw0rd",
     "database.names": "TestDB",
     "database.server.name": "sqlserver",
-    "table.include.list": "kafka.mcdonalds_sales",
+    "table.include.list": "kafka.ifood_orders,kafka.ifood_order_items",
     "database.history.kafka.bootstrap.servers": "kafka-cluster-kafka-bootstrap:9092",
     "database.history.kafka.topic": "schema-changes.sqlserver",
     "key.converter": "org.apache.kafka.connect.json.JsonConverter",

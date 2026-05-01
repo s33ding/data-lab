@@ -1,0 +1,19 @@
+# APISIX ingress controller was running in ingress-apisix namespace.
+# It was installed via Helm and has several ConfigMaps:
+#   - apisix-ingress-controller-configmap
+#   - apisix-ingress-controller-gw-configmap
+#   - debug-configmap
+#   - plugin-schema-configmap
+#   - sas-apisix-plugin-pup-token-authz (custom plugin)
+#   - sas-apisix-plugin-set-cookie-path (custom plugin)
+#
+# Secret:
+#   - apisix-admin-key
+#
+# To export from old cluster:
+#   kubectl --context sa-east-1-cluster get configmap -n ingress-apisix -o yaml
+#   kubectl --context sa-east-1-cluster get secret apisix-admin-key -n ingress-apisix -o yaml
+#
+# To install:
+#   helm repo add apisix https://charts.apiseven.com
+#   helm install apisix apisix/apisix -n ingress-apisix --create-namespace

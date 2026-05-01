@@ -2,9 +2,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: sqlserver-init-script
-  namespace: lab
+  namespace: funasa
 data:
   init.sql: |
+    CREATE DATABASE FunasaDB;
+    GO
     CREATE DATABASE TestDB;
     GO
     USE TestDB;

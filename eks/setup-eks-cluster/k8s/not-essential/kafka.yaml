@@ -1,0 +1,27 @@
+# Confluent Kafka was running on the old cluster across multiple namespaces:
+#   - default: kafka-brokers (3 replicas, RUNNING)
+#   - kafka: kafka-brokers (3 replicas, RUNNING), kraftcontroller (1 replica), kafka-connect-proper
+#   - lab: kafka-brokers (3 replicas), kafka-connect
+#
+# Related ConfigMaps in default namespace:
+#   - kafka-brokers-init-config
+#   - kafka-brokers-shared-config
+#   - connector-configs
+#   - debezium-sqlserver-connector
+#   - sqlserver-init-script
+#   - s3-sink-code
+#
+# Related Secrets:
+#   - kafka-ui-auth
+#
+# Related ServiceAccounts:
+#   - kafka
+#   - kafka-connect-sa
+#   - kafka-provisioning
+#
+# To export from old cluster:
+#   kubectl --context sa-east-1-cluster get configmap kafka-brokers-init-config kafka-brokers-shared-config connector-configs debezium-sqlserver-connector -n default -o yaml
+#   kubectl --context sa-east-1-cluster get sa kafka kafka-connect-sa kafka-provisioning -n default -o yaml
+#
+# Confluent Platform CRDs are required. Install via:
+#   kubectl apply -f https://raw.githubusercontent.com/confluentinc/confluent-for-kubernetes/master/crds/platform.confluent.io_kafkas.yaml

@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-cd-argocd-app-controller
+  namespace: argocd
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-cd-argocd-server
+  namespace: argocd
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argocd-repo-server
+  namespace: argocd
+# NOTE: ArgoCD was installed via Helm on the old cluster.
+# To install on the new cluster:
+#   helm repo add argo https://argoproj.github.io/argo-helm
+#   helm install argo-cd argo/argo-cd -n argocd --create-namespace

@@ -1,0 +1,20 @@
+{
+  "name": "ifood-iceberg-s3-sink",
+  "config": {
+    "connector.class": "io.tabular.iceberg.connect.IcebergSinkConnector",
+    "tasks.max": "3",
+    "topics": "ifood.TestDB.kafka.ifood_orders,ifood.TestDB.kafka.ifood_order_items",
+    "iceberg.catalog.type": "glue",
+    "iceberg.catalog.warehouse": "s3://dataiesb-s3-tables/iceberg/",
+    "iceberg.catalog.io-impl": "org.apache.iceberg.aws.s3.S3FileIO",
+    "iceberg.catalog.glue.region": "us-east-1",
+    "iceberg.tables": "ifood_db.orders,ifood_db.order_items",
+    "iceberg.tables.auto-create-enabled": "true",
+    "iceberg.tables.evolve-schema-enabled": "true",
+    "iceberg.control.commit.interval-ms": "60000",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false"
+  }
+}

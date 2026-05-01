@@ -69,6 +69,10 @@ safe_delete("deployment", "postgres", namespace)
 safe_delete("service", "postgres", namespace)
 safe_delete("pvc", "postgres-pvc", namespace)
 
+print("🔄 Deleting SQL Server...")
+safe_delete("deployment", "sqlserver", namespace)
+safe_delete("service", "sqlserver-service", namespace)
+
 print("🔄 Deleting Kafka infrastructure...")
 run(f"kubectl delete connector --all -n {namespace} --force --grace-period=0", check=True)
 safe_delete("kafka", "kafka-brokers", namespace)

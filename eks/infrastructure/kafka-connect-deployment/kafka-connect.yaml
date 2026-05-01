@@ -8,6 +8,7 @@ spec:
   image:
     application: 248189947068.dkr.ecr.us-east-1.amazonaws.com/kafka-connect-debezium:latest
     init: confluentinc/confluent-init-container:2.6.0
+    pullPolicy: Always
   configOverrides:
     server:
       - config.storage.replication.factor=1
